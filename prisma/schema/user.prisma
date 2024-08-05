@@ -1,0 +1,29 @@
+model user {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  password   String
+  loginType  LoginType
+  providerId String?
+  roleType   RoleType     
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  boards     board[]
+  posts      post[]
+  comments   comment[]
+
+
+  @@unique([email, loginType])
+}
+
+enum LoginType {
+  normal
+  google
+  naver
+}
+
+enum RoleType {
+  admin
+  normal
+}
+

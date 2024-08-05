@@ -1,0 +1,55 @@
+model test {
+  id         Int      @id @default(autoincrement()) 
+  title      String   @db.VarChar(100)
+  content    String   @db.VarChar(1000)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("test")
+}
+
+model board {
+  id          Int   @id @default(autoincrement())
+  name        String   @db.VarChar(30)
+  description String   @db.VarChar(500)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user_id    Int
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  posts       post[]
+
+  @@map("board")
+}
+
+model post {
+  id         Int    @id @default(autoincrement())
+  title      String    @db.VarChar(100)
+  content    String    @db.Text
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  user_id    Int
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  board_id   Int
+  board      board     @relation(fields: [board_id], references: [id], onDelete: Cascade)
+
+  comments   comment[]
+
+  @@map("post")
+}
+
+model comment {
+  id         Int    @id @default(autoincrement())
+  content    String    @db.VarChar(500)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  user_id    Int
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post_id    Int
+  post       post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@map("comment")
+}

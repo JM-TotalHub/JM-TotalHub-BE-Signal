@@ -1,3 +1,4 @@
+// ChatSocketHandler.js
 class ChatSocketHandler {
   constructor(socket) {
     this.socket = socket;
@@ -5,15 +6,23 @@ class ChatSocketHandler {
   }
 
   init() {
+    this.socket.join('notificationRoom');
     this.socket.on('joinRoom', this.userJoinedRoom.bind(this));
+    this.socket.on('sendMessage', this.handleMessage.bind(this));
   }
 
   userJoinedRoom(username) {
     console.log(`${username} has joined the chat.`);
-    // 모든 클라이언트에게 사용자 참여 알림
     this.socket.broadcast.emit(
       'userJoined',
       `${username} has joined the chat.`
     );
   }
+
+  handleMessage(message) {
+    console.log(`Received message: ${message}`);
+    this.socket.broadcast.emit('newMessage', message);
+  }
 }
+
+export default ChatSocketHandler;

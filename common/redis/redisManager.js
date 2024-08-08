@@ -1,18 +1,33 @@
+import ENV from '../utils/env';
 import { createClient } from 'redis';
 
-class RedisManger {
-  constructor() {
-    this.pub = createClient({
-      url: `redis://${process.env.SIGNAL_SERVER_REDIS_URL}:${process.env.SIGNAL_SERVER_REDIS_PORT}`,
-      password: process.env.SIGNAL_SERVER_REDIS_PASSWORD,
-      legacyMode: false,
-    });
+// Redis 클라이언트 인스턴스 생성
+const redisClient = createClient({
+  url: `redis://${ENV.SIGNAL_SERVER_REDIS_URL}:${ENV.SIGNAL_SERVER_REDIS_PORT}`,
+  password: ENV.SIGNAL_SERVER_REDIS_PASSWORD,
+});
 
-    this.sub = this.pub.duplicate();
+// Redis 클라이언트 연결
+const connectClient = async () => {
+  try {
+    await redisClient.connect();
+    console.log(`Redis Connected`);
+  } catch (err) {
+    console.error(`Error connecting to RedisClient:`, err);
   }
+};
 
-  // 나중에 소캣 연결 끊길 시,
-  // 소캣에서 레디스 pub으로 연결정보 메시지를 보내 재연결 시도하는 로직 구현해보기
-}
+// 클라이언트 연결 수행
+connectClient();
 
-export default RedisManger;
+// RedisManager 객체
+const RedisManager = {
+  getClient: () => {
+    if (!redisClient.isOpen) {
+      throw new Error('Server client is not connected.');
+    }
+    return redisClient; // 단일 인스턴스 반환
+  },
+};
+
+export default RedisManager;

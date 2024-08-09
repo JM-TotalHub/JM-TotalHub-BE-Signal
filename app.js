@@ -1,53 +1,55 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import ENV from './common/utils/env';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 
-console.log('환경 변수 확인:');
-console.log('SIGNAL_SERVER_REDIS_URL:', process.env.SIGNAL_SERVER_REDIS_URL);
-console.log('SIGNAL_SERVER_REDIS_PORT:', process.env.SIGNAL_SERVER_REDIS_PORT);
-console.log(
-  'SIGNAL_SERVER_REDIS_PASSWORD:',
-  process.env.SIGNAL_SERVER_REDIS_PASSWORD
-);
+import morgan from 'morgan';
+import cors from 'cors';
 
-// import RedisSession from './common/redis/redisSession';
-// import notifySocketHandler from './domains/notify/notify.socketHandler';
+import RedisSession from './common/redis/redisSession';
+import ChatSocketHandler from './domains/chat/socketHandlers/chat.socketHandler';
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: `${process.env.REACT_LOCAL_HOST}:${process.env.REACT_LOCAL_PORT}`,
+    origin: `${ENV.REACT_LOCAL_HOST}:${ENV.REACT_LOCAL_PORT}`,
     methods: ['GET', 'POST'],
     credentials: true,
   },
 });
 
-// 레디스 객체들 생성 & 모니터링 시작
-// (async () => {
-//   // await RedisManager.connect();
-//   // await RedisPipeManger.connect();
-//   await RedisSession.connect(io);
-//   await RedisSession.startMonitor();
-// })();
+app.use(express.json());
+app.use(morgan('dev'));
 
-// 소캣 연결
-// io.on('connect', async (socket) => {
-//   console.log('소캣 연결 됨. socket id : ', socket.id);
-//   notifySocketHandler(socket);
+// CORS 설정
+app.use(
+  cors({
+    origin: `http://localhost:5000`, // 허용할 출처
+    methods: ['GET', 'POST'], // 허용할 HTTP 메서드
+    credentials: true, // 쿠키 및 인증 정보를 포함한 요청을 허용
+  })
+);
 
-//   setInterval(() => {
-//     const notificationMessage = '새로운 알림이 있습니다!';
-//     io.to('notificationRoom').emit('newMessage', notificationMessage);
-//     console.log('알림 전송');
-//   }, 10000);
-// });
+(async () => {
+  await RedisSession.connect(io);
+  await RedisSession.startMonitor();
+})();
+
+io.on('connect', async (socket) => {
+  console.log('소캣 연결 됨. socket id : ', socket.id);
+  ChatSocketHandler(socket);
+
+  setInterval(() => {
+    const notificationMessage = '연결 확인 중';
+    io.to('notificationRoom').emit('newMessage', notificationMessage);
+    console.log('연결 확인 : ', socket.id);
+  }, 100000);
+});
 
 // api
 import chatRouter from './domains/chat/routers';
-app.use('chat', chatRouter);
+app.use('/chats', chatRouter);
 
 const PORT = 7000;
 server.listen(PORT, () => {

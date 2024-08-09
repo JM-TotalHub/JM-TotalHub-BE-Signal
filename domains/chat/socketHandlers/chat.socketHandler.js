@@ -1,28 +1,22 @@
 // ChatSocketHandler.js
-class ChatSocketHandler {
-  constructor(socket) {
-    this.socket = socket;
-    this.init();
-  }
+const ChatSocketHandler = (socket) => {
+  const init = () => {
+    socket.join('notificationRoom');
+    socket.on('joinRoom', userJoinedRoom);
+    socket.on('sendMessage', handleMessage);
+  };
 
-  init() {
-    this.socket.join('notificationRoom');
-    this.socket.on('joinRoom', this.userJoinedRoom.bind(this));
-    this.socket.on('sendMessage', this.handleMessage.bind(this));
-  }
-
-  userJoinedRoom(username) {
+  const userJoinedRoom = (username) => {
     console.log(`${username} has joined the chat.`);
-    this.socket.broadcast.emit(
-      'userJoined',
-      `${username} has joined the chat.`
-    );
-  }
+    socket.broadcast.emit('userJoined', `${username} has joined the chat.`);
+  };
 
-  handleMessage(message) {
+  const handleMessage = (message) => {
     console.log(`Received message: ${message}`);
-    this.socket.broadcast.emit('newMessage', message);
-  }
-}
+    socket.broadcast.emit('newMessage', message);
+  };
+
+  init();
+};
 
 export default ChatSocketHandler;

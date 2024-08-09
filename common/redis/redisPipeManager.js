@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import ENV from '../utils/env';
 
 const RedisPipeManager = (() => {
   let pub = null;
@@ -6,8 +7,8 @@ const RedisPipeManager = (() => {
 
   const connect = async () => {
     pub = createClient({
-      url: `redis://${process.env.SIGNAL_SERVER_REDIS_URL}:${process.env.SIGNAL_SERVER_REDIS_PORT}`,
-      password: process.env.SIGNAL_SERVER_REDIS_PASSWORD,
+      url: `redis://${ENV.SIGNAL_SERVER_REDIS_URL}:${ENV.SIGNAL_SERVER_REDIS_PORT}`,
+      password: ENV.SIGNAL_SERVER_REDIS_PASSWORD,
       legacyMode: false,
     });
 

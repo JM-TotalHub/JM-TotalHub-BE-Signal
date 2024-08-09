@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { logTimer } from '../utils/logUtils';
+import ENV from '../utils/env';
 
 /**
  * RedisAdapter을 통한 시그널 서버 인스턴스 연결, 관리
@@ -13,8 +14,8 @@ const RedisSession = (() => {
   const connect = async (socketIO) => {
     if (!pub) {
       pub = createClient({
-        url: `redis://${process.env.SIGNAL_SERVER_REDIS_URL}:${process.env.SIGNAL_SERVER_REDIS_PORT}`,
-        password: process.env.SIGNAL_SERVER_REDIS_PASSWORD,
+        url: `redis://${ENV.SIGNAL_SERVER_REDIS_URL}:${ENV.SIGNAL_SERVER_REDIS_PORT}`,
+        password: ENV.SIGNAL_SERVER_REDIS_PASSWORD,
       });
 
       sub = pub.duplicate();

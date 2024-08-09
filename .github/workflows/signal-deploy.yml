@@ -1,0 +1,70 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v3
+
+      - name: 환경 변수 로드
+        id: load-env
+        run: |
+          echo "${{ secrets.SIGNAL_SERVER01_ENV }}" | while IFS= read -r line; do
+            # 주석과 빈 줄 무시
+            if [[ -n "$line" && "$line" != \#* ]]; then
+              echo "$line" >> $GITHUB_ENV
+            fi
+          done
+
+      - name: Node 설치
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20.14.0"
+
+      - name: 의존성 설치
+        run: npm install
+
+      - name: Docker Buildx 설정
+        uses: docker/setup-buildx-action@v1
+
+      - name: Docker Hub 로그인
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker image 빌드 & 푸쉬
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/jm-total-hub:signal-latest
+
+      - name: EC2 배포
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SIGNAL_SERVER01_EC2_HOST }}
+          username: ${{ env.SIGNAL_SERVER01_EC2_USERNAME }}
+          key: ${{ secrets..SIGNAL_SERVER01_EC2_PRIVATE_KEY }}
+          script: |
+            docker image prune -a -f --filter "until=12h"
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            # 데이터베이스 환경변수
+            export SIGNAL_SERVER_REDIS_URL=${{ env.SIGNAL_SERVER_REDIS_URL }}
+            export SIGNAL_SERVER_REDIS_PASSWORD=${{ env.SIGNAL_SERVER_REDIS_PASSWORD }}
+            export SIGNAL_SERVER_REDIS_PORT=${{ env.SIGNAL_SERVER_REDIS_PORT }}
+            # 엔진엑스
+            export NGINX_SERVER_EC2_HOST=${{ env.NGINX_SERVER_EC2_HOST }}
+            cd express
+            sudo -E docker-compose pull express 
+            sudo -E docker-compose up -d express  
+            sudo -E docker-compose logs express
+

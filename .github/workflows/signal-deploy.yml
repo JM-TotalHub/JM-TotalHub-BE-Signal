@@ -63,7 +63,7 @@ jobs:
             export SIGNAL_SERVER_REDIS_PORT=${{ env.SIGNAL_SERVER_REDIS_PORT }}
             # 엔진엑스
             export NGINX_SERVER_EC2_HOST=${{ env.NGINX_SERVER_EC2_HOST }}
-            cd express
+            cd signal
             sudo -E docker-compose pull express 
             sudo -E docker-compose up -d express  
             sudo -E docker-compose logs express

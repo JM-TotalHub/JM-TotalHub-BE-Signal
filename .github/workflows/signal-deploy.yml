@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v3
@@ -26,7 +26,7 @@ jobs:
       - name: Node 설치
         uses: actions/setup-node@v2
         with:
-          node-version: "20.14.0"
+          node-version: '20.14.0'
 
       - name: 의존성 설치
         run: npm install
@@ -53,7 +53,7 @@ jobs:
         with:
           host: ${{ env.SIGNAL_SERVER01_EC2_HOST }}
           username: ${{ env.SIGNAL_SERVER01_EC2_USERNAME }}
-          key: ${{ secrets..SIGNAL_SERVER01_EC2_PRIVATE_KEY }}
+          key: ${{ secrets.SIGNAL_SERVER01_EC2_PRIVATE_KEY }}
           script: |
             docker image prune -a -f --filter "until=12h"
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
@@ -67,4 +67,3 @@ jobs:
             sudo -E docker-compose pull express 
             sudo -E docker-compose up -d express  
             sudo -E docker-compose logs express
-

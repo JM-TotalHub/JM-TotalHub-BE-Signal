@@ -4,6 +4,7 @@
   "description": "채팅, 화상채팅 기능 구현은 위하 시그널 서버 프로젝트",
   "main": "index.js",
   "scripts": {
+    "start": "babel-node app.js",
     "dev": "nodemon --exec babel-node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

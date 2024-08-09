@@ -1,0 +1,56 @@
+model chat_room {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(30)
+  description String   @db.VarChar(500)
+  chat_type   ChatType
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt 
+
+  user_id     Int                
+  user        user     @relation(fields: [user_id], references: [id], onDelete: Cascade) 
+
+  chat_room_members    chat_room_member[]
+  chat_messages chat_message[]
+
+  @@map("chat_room")
+}
+
+enum ChatType {
+  one_to_one
+  private
+  public
+}
+
+
+model chat_room_member {
+  id          Int      @id @default(autoincrement())
+  email      String    
+  nickname   String    @default("default-nickname")
+  loginType  LoginType
+  roleType   RoleType     
+
+  chat_room_id    Int
+  chat_room       chat_room      @relation(fields: [chat_room_id], references: [id], onDelete: Cascade)
+
+  user_id     Int                
+  user        user               @relation(fields: [user_id], references: [id], onDelete: Cascade) 
+
+  @@map("chat_room_member")
+}
+
+model chat_message {
+  id          Int       @id @default(autoincrement())
+  content     String    @db.VarChar(1000) 
+
+  user_id     Int                
+  user        user      @relation(fields: [user_id], references: [id], onDelete: Cascade) 
+
+  chat_room_id Int
+  chat_room   chat_room @relation(fields: [chat_room_id], references: [id], onDelete: Cascade) 
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt 
+
+  @@map("chat_message")
+}

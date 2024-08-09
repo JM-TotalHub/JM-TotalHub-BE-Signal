@@ -59,7 +59,6 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             # 데이터베이스 환경변수
             export EXPRESS_SERVER01_DATABASE_URL=${{ env.EXPRESS_SERVER01_DATABASE_URL }}
-
             # 레디스 환경변수 
             export SIGNAL_SERVER_REDIS_URL=${{ env.SIGNAL_SERVER_REDIS_URL }}
             export SIGNAL_SERVER_REDIS_PASSWORD=${{ env.SIGNAL_SERVER_REDIS_PASSWORD }}

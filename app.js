@@ -14,7 +14,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     // origin: `${ENV.REACT_LOCAL_HOST}:${ENV.REACT_LOCAL_PORT}`,
-    origin: 'http://10.1.10.191',
+    origin: 'http://15.165.250.99',
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -24,14 +24,14 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // CORS 설정
-app.use(
-  cors({
-    // origin: `http://localhost:5000`, // 허용할 출처
-    origin: `http://10.1.10.191`, // 허용할 출처
-    methods: ['GET', 'POST'], // 허용할 HTTP 메서드
-    credentials: true, // 쿠키 및 인증 정보를 포함한 요청을 허용
-  })
-);
+// app.use(
+//   cors({
+//     // origin: `http://localhost:5000`, // 허용할 출처
+//     origin: `http://10.1.10.191`, // 허용할 출처
+//     methods: ['GET', 'POST'], // 허용할 HTTP 메서드
+//     credentials: true, // 쿠키 및 인증 정보를 포함한 요청을 허용
+//   })
+// );
 
 (async () => {
   await RedisSession.connect(io);
@@ -56,12 +56,6 @@ app.use('/chats', chatRouter);
 // 간단한 API 엔드포인트
 app.get('/api/test', (req, res) => {
   res.status(200).send({ message: 'API 연결 확인 완료' });
-});
-
-// 소켓 테스트용 라우트
-app.get('/socket-test', (req, res) => {
-  io.emit('testEvent', { message: '소켓 연결 확인 완료' });
-  res.status(200).send({ message: '소켓 이벤트 전송 완료' });
 });
 
 const PORT = 7000;

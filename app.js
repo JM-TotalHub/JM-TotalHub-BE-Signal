@@ -24,13 +24,14 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // CORS 설정
-// app.use(
-//   cors({
-//     origin: `http://localhost:5000`, // 허용할 출처
-//     methods: ['GET', 'POST'], // 허용할 HTTP 메서드
-//     credentials: true, // 쿠키 및 인증 정보를 포함한 요청을 허용
-//   })
-// );
+app.use(
+  cors({
+    // origin: `http://localhost:5000`, // 허용할 출처
+    origin: `http://10.1.10.191`, // 허용할 출처
+    methods: ['GET', 'POST'], // 허용할 HTTP 메서드
+    credentials: true, // 쿠키 및 인증 정보를 포함한 요청을 허용
+  })
+);
 
 (async () => {
   await RedisSession.connect(io);

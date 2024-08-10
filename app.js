@@ -53,6 +53,17 @@ io.on('connect', async (socket) => {
 import chatRouter from './domains/chat/routers';
 app.use('/chats', chatRouter);
 
+// 간단한 API 엔드포인트
+app.get('/api/test', (req, res) => {
+  res.status(200).send({ message: 'API 연결 확인 완료' });
+});
+
+// 소켓 테스트용 라우트
+app.get('/socket-test', (req, res) => {
+  io.emit('testEvent', { message: '소켓 연결 확인 완료' });
+  res.status(200).send({ message: '소켓 이벤트 전송 완료' });
+});
+
 const PORT = 7000;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

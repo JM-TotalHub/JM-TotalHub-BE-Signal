@@ -6,10 +6,14 @@ const chatRoomJoin = async (req, res) => {
   const { chatRoomId } = req.params;
   const bodyData = req.body;
 
-  const updatedChatRoomData = await ChatService.joinChatRoom(
-    chatRoomId,
-    bodyData
-  );
+  let updatedChatRoomData;
+
+  try {
+    // const updatedChatRoomData = await ChatService.joinChatRoom(
+    updatedChatRoomData = await ChatService.joinChatRoom(chatRoomId, bodyData);
+  } catch (error) {
+    console.log('서비스 로직 에러 : ', error);
+  }
 
   res.status(201).json(updatedChatRoomData); // 성공 시 201 상태 코드 반환
 };

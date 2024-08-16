@@ -1,7 +1,8 @@
 // ChatSocketHandler.js
-const ChatSocketHandler = (socket) => {
+const chatRoomSocketHandler = (socket) => {
   const init = () => {
     socket.join('notificationRoom');
+    console.log(socket.id, ' notificationRoom 가입');
     socket.on('joinRoom', userJoinedRoom);
     socket.on('sendMessage', handleMessage);
   };
@@ -19,4 +20,4 @@ const ChatSocketHandler = (socket) => {
   init();
 };
 
-export default ChatSocketHandler;
+export default chatRoomSocketHandler;

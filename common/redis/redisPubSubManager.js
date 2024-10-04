@@ -1,23 +1,18 @@
 import { createClient } from 'redis';
 import ENV from '../utils/env';
 
-const RedisPipeManager = (() => {
-  let pub = null;
-  let sub = null;
+const RedisPubSubManager = (() => {
+  const pub = createClient({
+    url: `redis://${ENV.SIGNAL_SERVER_REDIS_URL}:${ENV.SIGNAL_SERVER_REDIS_PORT}`,
+    password: ENV.SIGNAL_SERVER_REDIS_PASSWORD,
+  });
+
+  const sub = pub.duplicate();
 
   const connect = async () => {
-    pub = createClient({
-      url: `redis://${ENV.SIGNAL_SERVER_REDIS_URL}:${ENV.SIGNAL_SERVER_REDIS_PORT}`,
-      password: ENV.SIGNAL_SERVER_REDIS_PASSWORD,
-      legacyMode: false,
-    });
-
-    sub = pub.duplicate();
-
     try {
       await pub.connect();
       console.log('Publisher connected to Redis');
-
       await sub.connect();
       console.log('Subscriber connected to Redis');
     } catch (err) {
@@ -39,11 +34,25 @@ const RedisPipeManager = (() => {
     return sub;
   };
 
+  const publishMessage = async (channel, message) => {
+    const publisher = getPublisher();
+    await publisher.publish(channel, message);
+  };
+
+  const subscribeChannel = async (channel, callback) => {
+    const subscriber = getSubscriber();
+    await subscriber.subscribe(channel, (message) => {
+      callback(message);
+    });
+  };
+
   return {
     connect,
     getPublisher,
     getSubscriber,
+    publishMessage,
+    subscribeChannel,
   };
 })();
 
-export default RedisPipeManager;
+export default RedisPubSubManager;

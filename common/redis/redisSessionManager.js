@@ -7,7 +7,7 @@ import ENV from '../utils/env';
  * RedisAdapter을 통한 시그널 서버 인스턴스 연결, 관리
  * 복수의 시그널 서버를 레디스를 통해 연결한다.
  */
-const RedisSession = (() => {
+const RedisSessionManager = (() => {
   let pub = null;
   let sub = null;
 
@@ -66,4 +66,4 @@ const RedisSession = (() => {
   };
 })();
 
-export default RedisSession;
+export default RedisSessionManager;

@@ -72,10 +72,24 @@ const RedisChatVideoEventHandler = async (io) => {
     );
 
     const members = await redisClient.hGetAll(chatRoomVideoMembersKey);
-    const parsedMembers = Object.keys(members).reduce((acc, key) => {
-      acc[key] = JSON.parse(members[key]);
-      return acc;
-    }, {});
+
+    console.log(`!!!!!!!!!!!!!!!!`);
+    console.log(members);
+
+    const arrayMembers = Object.values(members); // 배열
+
+    console.log(`!!!!!!!!!!!!!!!!`);
+    console.log(arrayMembers);
+
+    // const parsedMembers = Object.keys(arrayMembers).reduce((acc, key) => {
+    //   acc[key] = JSON.parse(arrayMembers[key]);
+    //   return acc;
+    // }, {});
+
+    const parsedMembers = arrayMembers.map((member) => JSON.parse(member)); // json
+
+    console.log(`!!!!!!!!!!!!!!!!`);
+    console.log(parsedMembers);
 
     socket.emit('chat-room-video', {
       type: 'members',

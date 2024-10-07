@@ -16,15 +16,28 @@ const RedisChatVideoEventHandler = async (io) => {
 
         switch (data.eventData.type) {
           case 'join':
-            userJoinChatRoomVideo(data.socketId, data.eventData.chatRoomId);
+            userJoinChatRoomVideo(
+              io,
+              data.socketId,
+              data.eventData.userId,
+              data.eventData.chatRoomId
+            );
             console.log('chat-room-video => type: join 요청 들어옴');
             break;
           case 'leave':
             console.log('chat-room-video => type: leave 요청 들어옴');
+            userLeaveChatRoomVideo(
+              io,
+              data.socketId,
+              data.eventData.userId,
+              data.eventData.chatRoomId
+            );
             break;
           case 'ice-candidate':
             console.log('chat-room-video => type: ice-candidate 요청 들어옴');
             webrtcIce(
+              io,
+              data.socketId,
               data.eventData.chatRoomId,
               data.eventData.userId,
               data.eventData.iceCandidate
@@ -33,6 +46,8 @@ const RedisChatVideoEventHandler = async (io) => {
           case 'offer':
             console.log('chat-room-video => type: offer 요청 들어옴');
             webrtcOffer(
+              io,
+              data.socketId,
               data.eventData.chatRoomId,
               data.eventData.userId,
               data.eventData.offer
@@ -41,6 +56,8 @@ const RedisChatVideoEventHandler = async (io) => {
           case 'answer':
             console.log('chat-room-video => type: answer 요청 들어옴');
             webrtcAnswer(
+              io,
+              data.socketId,
               data.eventData.chatRoomId,
               data.eventData.userId,
               data.eventData.answer
@@ -53,7 +70,7 @@ const RedisChatVideoEventHandler = async (io) => {
     });
   };
 
-  const userJoinChatRoomVideo = async (socketId, chatRoomId) => {
+  const userJoinChatRoomVideo = async (io, socketId, userId, chatRoomId) => {
     const socket = await socketCheck(socketId);
     const user = socket.user;
 
@@ -81,47 +98,100 @@ const RedisChatVideoEventHandler = async (io) => {
     console.log(`!!!!!!!!!!!!!!!!`);
     console.log(arrayMembers);
 
-    // const parsedMembers = Object.keys(arrayMembers).reduce((acc, key) => {
-    //   acc[key] = JSON.parse(arrayMembers[key]);
-    //   return acc;
-    // }, {});
-
     const parsedMembers = arrayMembers.map((member) => JSON.parse(member)); // json
 
     console.log(`!!!!!!!!!!!!!!!!`);
     console.log(parsedMembers);
 
+    // 방금 방을 들어온 사용자에게 현재 최신 화상채팅 참가인원 전달 (본인 포함 - 배열)
     socket.emit('chat-room-video', {
       type: 'members',
-      newMember: parsedMembers,
+      members: parsedMembers,
+    });
+
+    // 기존의 화상채팅 참가자들에게 새로운 참가자 정보를 전달 (요청자 본인 내용만 - 유저 단일 객체)
+    // const newMember = parsedMembers.filter((member) => member.id === userId); // 본인을 제외한 다른 참가자 정보 필터링
+    const newMember = parsedMembers.find((member) => member.id === userId); // 본인 정보만 찾기
+
+    console.log(`!!!!!!!!!!!!!!!!`);
+    console.log(newMember);
+
+    // 기존의 화상채팅 참가인원들에게 새로운 참가자가 들어왔다고 알림 (본인 내용만)
+    socket.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+      type: 'member-join',
+      userId,
+      newMember: newMember,
     });
   };
 
-  const webrtcIce = async (chatRoomId, userId, iceCandidate) => {
+  const userLeaveChatRoomVideo = async (io, socketId, userId, chatRoomId) => {
+    // 레디스에서 데이터 삭제
+    const chatRoomVideoMembersKey = `chat-room:${chatRoomId}-video-members`;
+
+    await redisClient.hDel(chatRoomVideoMembersKey, userId.toString());
+
+    // const socket = await socketCheck(socketId);
+    // const user = socket.user;
+
+    // if (!socket) return;
+
+    // 다른 화상채팅 인원들에게 요청자 방 나갔다고 알림
+    io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+      type: 'member-leave',
+      userId,
+    });
+  };
+
+  const webrtcIce = async (io, socketId, chatRoomId, userId, iceCandidate) => {
     console.log(
       `webrtcIce 핸들러 동작 == chatRoomId : ${chatRoomId} // iceCandidate : ${iceCandidate}`
     );
 
-    io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+    const socket = await socketCheck(socketId);
+    const user = socket.user;
+
+    // io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+    //   type: 'ice-candidate',
+    //   userId,
+    //   ice: iceCandidate,
+    // });
+
+    socket.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
       type: 'ice-candidate',
       userId,
       ice: iceCandidate,
     });
   };
-  const webrtcOffer = async (chatRoomId, userId, offer) => {
-    io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+  const webrtcOffer = async (io, socketId, chatRoomId, userId, offer) => {
+    const socket = await socketCheck(socketId);
+    const user = socket.user;
+
+    // io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+    //   type: 'offer',
+    //   userId,
+    //   offer,
+    // });
+    socket.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
       type: 'offer',
       userId,
       offer,
     });
   };
-  const webrtcAnswer = async (chatRoomId, userId, answer) => {
+  const webrtcAnswer = async (io, socketId, chatRoomId, userId, answer) => {
     console.log(
       `webrtcAnswer 핸들러 동작 == chatRoomId : ${chatRoomId} // userId : ${userId}`
     );
     console.log(chatRoomId);
 
-    io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+    const socket = await socketCheck(socketId);
+    const user = socket.user;
+
+    // io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+    //   type: 'answer',
+    //   userId,
+    //   answer,
+    // });
+    socket.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
       type: 'answer',
       userId,
       answer,

@@ -23,7 +23,11 @@ const RedisChatEventHandler = async (io) => {
 
     RedisPubSubManager.subscribeChannel('leave-chat-room', (jasonData) => {
       const data = JSON.parse(jasonData);
-      userLeftRoom(data.socketId, data.eventData.chatRoomId);
+      userLeftRoom(
+        data.socketId,
+        data.eventData.userId,
+        data.eventData.chatRoomId
+      );
     });
 
     RedisPubSubManager.subscribeChannel(
@@ -64,18 +68,22 @@ const RedisChatEventHandler = async (io) => {
     );
   };
 
-  const userLeftRoom = async (socketId, chatRoomId) => {
-    const socket = io.sockets.sockets.get(socketId);
-    const user = socket.user;
+  const userLeftRoom = async (socketId, userId, chatRoomId) => {
+    // const socket = io.sockets.sockets.get(socketId);
+    // const user = socket.user;
 
-    console.log(`${user.email}가 채팅방 ${chatRoomId} 방나감.`);
+    // console.log(`${user.email}가 채팅방 ${chatRoomId} 방나감.`);
+
+    console.log(`userLeftRoom 의 userId : ${userId}`);
 
     // 레디스 채팅방 참가자 목록에서 제거
-    await redisClient.hDel(`chat-room:${chatRoomId}-members`, String(user.id));
+    // await redisClient.hDel(`chat-room:${chatRoomId}-members`, String(user.id));
+    await redisClient.hDel(`chat-room:${chatRoomId}-members`, String(userId));
 
     // 채팅방에 퇴장 알림
     io.to(`chat-room:${chatRoomId}`).emit('chat-room-user-leave', {
-      userId: user.id,
+      // userId: user.id,
+      userId: userId,
     });
 
     // 레디스에서 참가자 목록 가져오기
@@ -95,6 +103,13 @@ const RedisChatEventHandler = async (io) => {
       );
     }
 
+    // 그냥 브라우저를 꺼버리는 경우 소캣 끊긴상태에서 요청이 올 수 있다는 것을 가정
+    const socket = io.sockets.sockets.get(socketId);
+    // const user = socket.user;
+
+    console.log(`userLeftRoom 의 socket : ${socket}`);
+
+    if (!socket) return;
     // 방을 나감
     socket.leave(`chat-room:${chatRoomId}`);
   };

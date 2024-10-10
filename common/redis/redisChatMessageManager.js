@@ -46,7 +46,7 @@ const RedisChatMessageManager = (() => {
         }
       }
     } catch (error) {
-      console.error('Error saving messages to API:', error.errorMessage);
+      console.error('Error saving messages to API1:', error.errorMessage);
     }
     console.log('메시지 저장 로직 동작완료');
   };
@@ -57,6 +57,15 @@ const RedisChatMessageManager = (() => {
 
     const messages = rawMessages.map((message) => JSON.parse(message));
 
+    console.log(
+      'saveMessagesByChatRoomId 로직 중 key: ',
+      key,
+      'rawMessages : ',
+      rawMessages,
+      'messages : ',
+      messages
+    );
+
     try {
       if (messages.length > 0) {
         await api.post('/chats/chat-rooms/messages', {
@@ -66,7 +75,7 @@ const RedisChatMessageManager = (() => {
       }
       await redisClient.del(`chat-room:${chatRoomId}-messages`);
     } catch (error) {
-      console.error('Error saving messages to API:', error.errorMessage);
+      console.error('Error saving messages to API2:', error.errorMessage);
     }
   };
   return { saveMessages, saveMessagesByChatRoomId };

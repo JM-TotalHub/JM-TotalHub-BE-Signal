@@ -2,6 +2,8 @@ import ENV from '../utils/env';
 import axios from 'axios';
 
 const api = (() => {
+  console.log('ENV.EXPRESS_SERVER_BASE_URL : ', ENV.EXPRESS_SERVER_BASE_URL);
+
   const backendApi = axios.create({
     baseURL: ENV.EXPRESS_SERVER_BASE_URL,
   });

@@ -20,7 +20,7 @@ const api = (() => {
       (config) => {
         console.log('정상 요청');
         // 요청마다 환경 변수를 출력
-        console.log('API 호출 시 환경변수 로그:');
+        console.log('API 호출시 환경변수 로그:');
         console.log(
           'ENV.EXPRESS_SERVER_BASE_URL : ',
           ENV.EXPRESS_SERVER_BASE_URL

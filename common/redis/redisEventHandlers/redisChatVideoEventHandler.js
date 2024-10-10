@@ -50,6 +50,7 @@ const RedisChatVideoEventHandler = async (io) => {
               data.socketId,
               data.eventData.chatRoomId,
               data.eventData.userId,
+              data.eventData.targetId,
               data.eventData.offer
             );
             break;
@@ -60,6 +61,7 @@ const RedisChatVideoEventHandler = async (io) => {
               data.socketId,
               data.eventData.chatRoomId,
               data.eventData.userId,
+              data.eventData.targetId,
               data.eventData.answer
             );
             break;
@@ -162,40 +164,79 @@ const RedisChatVideoEventHandler = async (io) => {
       ice: iceCandidate,
     });
   };
-  const webrtcOffer = async (io, socketId, chatRoomId, userId, offer) => {
+  const webrtcOffer = async (
+    io,
+    socketId,
+    chatRoomId,
+    userId,
+    targetId,
+    offer
+  ) => {
+    // 요청자의 소캣(offer 받아서 answer 보내는 사람)
     const socket = await socketCheck(socketId);
     const user = socket.user;
 
-    // io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+    // 대상자의 소캣(offer 보냈고, 이제 answer 받아야하는 사람)
+    const targetSocketId = await redisClient.get(`socket:${targetId}`);
+
+    if (targetSocketId) {
+      // 특정 소켓에만 메시지 전송
+      io.to(targetSocketId).emit('chat-room-video', {
+        type: 'offer',
+        userId,
+        offer,
+      });
+    } else {
+      console.log(
+        `webrtcOffer => targetId ${targetId}에 대한 소켓 ID를 찾을 수 없습니다.`
+      );
+    }
+    // socket.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
     //   type: 'offer',
     //   userId,
     //   offer,
     // });
-    socket.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
-      type: 'offer',
-      userId,
-      offer,
-    });
   };
-  const webrtcAnswer = async (io, socketId, chatRoomId, userId, answer) => {
+  const webrtcAnswer = async (
+    io,
+    socketId,
+    chatRoomId,
+    userId,
+    targetId,
+    answer
+  ) => {
     console.log(
-      `webrtcAnswer 핸들러 동작 == chatRoomId : ${chatRoomId} // userId : ${userId}`
+      `webrtcAnswer 핸들러 동작 == chatRoomId : ${chatRoomId} // userId : ${userId} // targetId: ${targetId}`
     );
     console.log(chatRoomId);
 
+    // 요청자의 소캣(offer 받아서 answer 보내는 사람)
     const socket = await socketCheck(socketId);
     const user = socket.user;
 
-    // io.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
+    // 대상자의 소캣(offer 보냈고, 이제 answer 받아야하는 사람)
+    const targetSocketId = await redisClient.get(`socket:${targetId}`);
+
+    // targetId 로 소캣 id 뽑아내기 그걸로 특정해서 answer 보내기
+
+    // socket.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
     //   type: 'answer',
     //   userId,
     //   answer,
     // });
-    socket.to(`chat-room:${chatRoomId}`).emit('chat-room-video', {
-      type: 'answer',
-      userId,
-      answer,
-    });
+
+    if (targetSocketId) {
+      // 특정 소켓에만 메시지 전송
+      io.to(targetSocketId).emit('chat-room-video', {
+        type: 'answer',
+        userId,
+        answer,
+      });
+    } else {
+      console.log(
+        `webrtcAnswer => targetId ${targetId}에 대한 소켓 ID를 찾을 수 없습니다.`
+      );
+    }
   };
 
   const socketCheck = async (socketId) => {

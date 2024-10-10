@@ -36,7 +36,7 @@ const joinChatRoom = async (chatRoomId, bodyData) => {
       userData.id.toString(),
       JSON.stringify(userTemplate)
     );
-    await redisClient.rPush(chatRoomMessagesKey, JSON.stringify(''));
+    // await redisClient.rPush(chatRoomMessagesKey, JSON.stringify('')); // 그냥 채팅 내역은 없는 상태로 생성
   } else {
     await redisClient.hSet(
       chatRoomMembersKey,

@@ -58,6 +58,9 @@ app.use((err, req, res, next) => {
   await RedisNotifyEventHandler(io);
   await RedisChatEventHandler(io);
   await RedisChatVideoEventHandler(io);
+
+  // 채팅방 메시지 저장 스케줄러 시작
+  startSchedulers();
 })();
 
 // 소캣 연결
@@ -99,6 +102,7 @@ io.engine.on('connection_error', (err) => {
 // http api
 import chatRouter from './domains/chat/routers';
 import RedisChatVideoEventHandler from './common/redis/redisEventHandlers/redisChatVideoEventHandler';
+import startSchedulers from './common/utils/scheduler';
 app.use('/chats', chatRouter);
 
 // 연결 테스트용 API 엔드포인트

@@ -1,3 +1,4 @@
+import RedisChatMessageManager from '../redisChatMessageManager';
 import RedisManager from '../redisManager';
 import RedisPubSubManager from '../redisPubSubManager';
 
@@ -97,7 +98,12 @@ const RedisChatEventHandler = async (io) => {
     if (Object.keys(remainingMembers).length === 0) {
       await redisClient.del(`chat-room:${chatRoomId}-info`);
       await redisClient.del(`chat-room:${chatRoomId}-members`);
-      await redisClient.del(`chat-room:${chatRoomId}-messages`);
+
+      // 남아있는 메시지가 있을 시 저장 후 삭제
+      await RedisChatMessageManager.saveMessagesByChatRoomId(chatRoomId);
+
+      // await redisClient.del(`chat-room:${chatRoomId}-messages`);
+
       console.log(
         `참가자가 없어 ${chatRoomId} 채팅방의 모든 데이터가 비활성화(삭제)되었습니다.`
       );
@@ -122,20 +128,23 @@ const RedisChatEventHandler = async (io) => {
       `채팅방 메시지 전송: ${chatRoomId}채팅방에서 ${user.email}가 ${message} 메시지를 보냄`
     );
 
+    const createdAt = new Date().toISOString();
+
     await redisClient.rPush(
       `chat-room:${chatRoomId}-messages`,
       JSON.stringify({
         userId: user.id,
         userEmail: user.email,
         message: message,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAt,
       })
     );
 
     io.to(`chat-room:${chatRoomId}`).emit('chat-room-new-message', {
-      userId: user.id,
-      userEmail: user.email,
-      message: message,
+      user_id: user.id,
+      // userEmail: user.email,
+      content: message,
+      createdAt,
     });
   };
 

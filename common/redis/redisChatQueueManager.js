@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
 import ENV from '../utils/env';
 import RedisPubSubManager from './redisPubSubManager';
+import RedisChatMessageManager from './redisChatMessageManager';
 
 const RedisChatQueueManager = (() => {
   const redisClient = createClient({
@@ -19,10 +20,11 @@ const RedisChatQueueManager = (() => {
 
   const addQueue = async (socket, event, eventData) => {
     try {
+      const socketId = socket ? socket.id : 'no-socket';
       const reply = await redisClient.rPush(
         'chatQueue', // 큐 이름
         JSON.stringify({
-          socketId: socket.id,
+          socketId,
           event,
           eventData,
         }) // 이벤트와 데이터를 함께 저장
@@ -42,37 +44,47 @@ const RedisChatQueueManager = (() => {
     try {
       const item = await redisClient.lPop('chatQueue');
       if (item) {
-        console.log('큐 새로운 작업 시작');
         const { socketId, event, eventData } = JSON.parse(item);
         console.log(
-          `socketId: ${socketId}, event: ${event}, eventData: ${eventData}`
+          `큐 새로운 작업 시작 => socketId: ${socketId}, event: ${event}, eventData: ${eventData}`
         );
-        const socket = io.sockets.sockets.get(socketId);
 
-        if (!socket) {
-          // 현재 연결된 모든 소켓 ID 목록을 가져온다.
-          const connectedSocketIds = Array.from(io.sockets.sockets.keys());
-          console.log('현재 연결된 소켓 ID 목록:', connectedSocketIds);
+        if (socketId === 'no-socket') {
+          // 소캣이 필요없는 작업들
+          switch (event) {
+            case 'save-messages':
+              await saveMessagesHandler(eventData);
+              break;
+            default:
+              console.log(`파악 불가능한 소켓이 필요없는 작업 : ${event}`);
+              break;
+          }
+        } else {
+          // 소캣이 필요한 작업들
+          const socket = io.sockets.sockets.get(socketId);
 
-          console.log(
-            '올바른 소캣의 요청이 아닙니다. processQueue 동작 중 발생 \n' +
-              `끊긴 이전 소캣연결일 확률이 있습니다. socketId: ${socketId}`
-          );
-          // return;
-          await processQueue(io);
-        }
+          if (!socket) {
+            // 현재 연결된 모든 소켓 ID 목록을 가져온다. (개발 테스트용)
+            const connectedSocketIds = Array.from(io.sockets.sockets.keys());
+            console.log('현재 연결된 소켓 ID 목록:', connectedSocketIds);
 
-        switch (event) {
-          case 'saveMessages':
-            await saveMessagesHandler(eventData);
-            break;
-          default:
-            await generalEventHandler(socketId, event, eventData);
+            console.log(
+              '올바른 소캣의 요청이 아닙니다. processQueue 동작 중 발생 \n' +
+                `끊긴 이전 소캣연결일 확률이 있습니다. socketId: ${socketId}`
+            );
+            // return;
+            await processQueue(io);
+          }
+
+          switch (event) {
+            default:
+              await generalEventHandler(socketId, event, eventData);
+              break;
+          }
         }
 
         await processQueue(io);
       } else {
-        // console.log('큐가 비어있습니다. 500ms 후에 다시 확인합니다...');
         setTimeout(() => processQueue(io), 500);
       }
     } catch (err) {
@@ -93,6 +105,7 @@ const RedisChatQueueManager = (() => {
   const saveMessagesHandler = async (data) => {
     // 처리 로직
     console.log('메시지 저장 처리:', data);
+    await RedisChatMessageManager.saveMessages();
   };
 
   const startProcessing = async (io) => {

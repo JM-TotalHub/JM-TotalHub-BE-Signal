@@ -30,11 +30,11 @@ const RedisNotifyEventHandler = async (io) => {
   };
 
   const socketCheck = async (socketId) => {
-    console.log(`알림 요청 소캣id : ${socketId}`);
+    // console.log(`알림 요청 소캣id : ${socketId}`);
 
     const socket = io.sockets.sockets.get(socketId);
 
-    console.log(`알림 요청 소캣 : ${socket.id}`);
+    // console.log(`알림 요청 소캣 : ${socket.id}`);
 
     if (socket === null || !socket || !socket.connected) {
       console.log(`소캣 이전 것 걸렸다. : ${socketId}`);

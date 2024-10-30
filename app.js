@@ -108,7 +108,7 @@ app.get('/api/test', (req, res) => {
   res.status(200).send({ message: 'API 연결 확인 완료' });
 });
 
-console.log('ENV.EXPRESS_SERVER_BASE_URL : ', ENV.EXPRESS_SERVER_BASE_URL);
+// console.log('ENV.EXPRESS_SERVER_BASE_URL : ', ENV.EXPRESS_SERVER_BASE_URL);
 
 // 서버 실행
 const PORT = 7000;

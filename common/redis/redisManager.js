@@ -25,10 +25,10 @@ const RedisManager = (() => {
 
   const getClient = () => {
     if (!redisClient) {
-      console.log('레디스 매니저 객체 없음');
+      console.log('준비된 레디스 매니저 객체 없음');
       initializeClient();
     }
-    console.log('레디스 매니저 객체 있음');
+    // console.log('레디스 매니저 객체 있음');
     return redisClient;
   };
 

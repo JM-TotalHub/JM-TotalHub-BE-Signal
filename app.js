@@ -85,7 +85,7 @@ io.on('connect', async (socket) => {
 
   // 연결 끊길 시
   socket.on('disconnect', () => {
-    clearInterval(intervalId);
+    // clearInterval(intervalId); // 연결 확인 메시지 전송
     console.log('연결 끊음 : ', socket.id);
   });
 });

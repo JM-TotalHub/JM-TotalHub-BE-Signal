@@ -6,9 +6,9 @@ const startSchedulers = () => {
   // 매 5분마다 실행되는 작업
   cron.schedule('*/5 * * * *', () => {
     // cron.schedule('*/30 * * * * *', () => {
-    console.log('5분마다 실행되는 작업');
+    // console.log('5분마다 실행되는 작업');
     RedisChatQueueManager.addQueue(null, 'save-messages', {
-      message: '5분마다 실행되는 작업입니다.',
+      message: '5분주기-채팅방 메시지 DB 저장.',
     });
   });
 };

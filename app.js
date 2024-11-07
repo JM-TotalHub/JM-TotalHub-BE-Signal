@@ -37,13 +37,13 @@ app.use((err, req, res, next) => {
 
 // 동작 시동걸기
 (async () => {
-  // 레디스 adapter 연결
+  // 레디스 adapter 연결 (서버상태 관리)
   await RedisSessionManager.connect(io);
-  // 레디스 상태 모니터링
+  // 레디스 상태 모니터링 (서버상태 관리)
   await RedisSessionManager.startMonitor();
-  // 레디스 pub, sub 객체 초기화
+  // 레디스 pub, sub 객체 초기화 (소켓 이벤트 등록)
   await RedisPubSubManager.connect();
-  // 레디스 큐 객체 초기화
+  // 레디스 큐 객체 초기화 (소켓 이벤트 처리)
   await RedisChatQueueManager.initialize(io);
 
   // 레디스 주요 채널 구독
@@ -76,25 +76,26 @@ io.on('connect', async (socket) => {
   });
 
   // 연결 확인 메시지 전송 (테스트용)
-  console.log('소캣 연결 됨. socket id : ', socket.id);
-  const intervalId = setInterval(() => {
-    console.log('소캣 연결 중 : ', socket.id);
-    const notificationMessageToAll = `소켓 연결 메시지 from ${socket.id}`;
-    socket.emit('notification-to-all', notificationMessageToAll);
-  }, 10000);
+  // console.log('소캣 연결 됨. socket id : ', socket.id);
+  // const intervalId = setInterval(() => {
+  //   console.log('소캣 연결 중 : ', socket.id);
+  //   const notificationMessageToAll = `소켓 연결 메시지 from ${socket.id}`;
+  //   socket.emit('notification-to-all', notificationMessageToAll);
+  // }, 10000);
 
   // 연결 끊길 시
   socket.on('disconnect', () => {
-    clearInterval(intervalId);
+    // clearInterval(intervalId); // 연결 확인 메시지 전송
     console.log('연결 끊음 : ', socket.id);
   });
 });
 
 io.engine.on('connection_error', (err) => {
-  console.log(err.req);
+  console.log('소캣 연결 에러 발생');
+  // console.log(err.req);
   console.log(err.code);
   console.log(err.message);
-  console.log(err.context);
+  // console.log(err.context);
 });
 
 // http api
@@ -108,7 +109,7 @@ app.get('/api/test', (req, res) => {
   res.status(200).send({ message: 'API 연결 확인 완료' });
 });
 
-console.log('ENV.EXPRESS_SERVER_BASE_URL : ', ENV.EXPRESS_SERVER_BASE_URL);
+// console.log('ENV.EXPRESS_SERVER_BASE_URL : ', ENV.EXPRESS_SERVER_BASE_URL);
 
 // 서버 실행
 const PORT = 7000;

@@ -6,6 +6,8 @@ import ENV from '../utils/env';
 /**
  * RedisAdapter을 통한 시그널 서버 인스턴스 연결, 관리
  * 복수의 시그널 서버를 레디스를 통해 연결한다.
+ *
+ * 어댑터 연결에 pub, sub 둘 다 필요하다.
  */
 const RedisSessionManager = (() => {
   let pub = null;

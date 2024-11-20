@@ -9,9 +9,13 @@ model user {
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
 
-  boards     board[]
-  posts      post[]
-  comments   comment[]
+  boards        board[]
+  posts         post[]
+  comments      comment[]
+  post_like     post_like[]
+  post_dislike  post_dislike[]
+  comment_likes      comment_like[]
+  comment_dislikes   comment_dislike[]
   chat_rooms chat_room[] 
   chat_room_members chat_room_member[]
   chat_messages chat_message[]

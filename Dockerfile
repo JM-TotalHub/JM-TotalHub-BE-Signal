@@ -17,5 +17,9 @@ COPY . .
 EXPOSE 7000
 
 # 애플리케이션 실행
-CMD ["sh", "-c", "npx prisma --version && npx prisma generate && npx prisma migrate deploy && npm start"]
+# CMD ["sh", "-c", "npx prisma --version && npx prisma generate && npx prisma migrate deploy && npm start"]
+
+# 마이 그레이션 제외하고 클라이언트 생성만 
+CMD ["sh", "-c", "npx prisma --version && npx prisma generate && npm start"] 
+
 # CMD ["sh", "-c", "npx prisma --version && npx prisma migrate deploy && npm start"]

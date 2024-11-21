@@ -30,12 +30,16 @@ model post {
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
 
+  view_count Int      @default(0)
+
   user_id    Int
   user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   board_id   Int
   board      board     @relation(fields: [board_id], references: [id], onDelete: Cascade)
 
   comments   comment[]
+  likes      post_like[]
+  dislikes   post_dislike[]
 
   @@map("post")
 }
@@ -51,6 +55,56 @@ model comment {
   post_id    Int
   post       post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
 
+  likes      comment_like[]
+  dislikes   comment_dislike[]
+
   @@map("comment")
 }
 
+model post_like {
+  id       Int   @id @default(autoincrement())
+
+  user_id    Int
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post_id  Int
+  post     post  @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, post_id])
+  @@map("post_like")
+}
+
+model post_dislike {
+  id       Int   @id @default(autoincrement())
+
+  user_id    Int
+  user       user  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post_id   Int
+  post      post  @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, post_id])
+  @@map("post_dislike")
+}
+
+model comment_like {
+  id       Int   @id @default(autoincrement())
+
+  user_id    Int
+  user       user  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  comment_id Int
+  comment    comment  @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, comment_id])
+  @@map("comment_like")
+}
+
+model comment_dislike {
+  id       Int   @id @default(autoincrement())
+
+  user_id    Int
+  user       user  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  comment_id Int
+  comment    comment  @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, comment_id])
+  @@map("comment_dislike")
+}
